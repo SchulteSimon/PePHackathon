@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Index</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='site.css') }}" />
+    <script defer src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script defer src="{{ url_for('static', filename='main.js')}}"></script>
+  </head>
+  <body>
+    <div id="app">
+      Anzahl Spieler: (( numPlayer )), Spieler (( currentPlayer )) ist an der Reihe.
+
+      <button v-on:click="throwDice" >Würfeln</button>
+      Letzter Wurf: (( currentThrow ))
+
+      <div id="field">
+        <button
+          v-for="(field, id) in fields" 
+          class="field"
+          v-bind:disabled="!field.allowed"
+          v-bind:style="{top: field.y + '%', left: field.x + '%'}"
+          v-bind:class="{allowed: field.allowed, 'not-allowed': !field.allowed}"
+          v-on:click="handleClick(id)"
+          >
+        </button>
+      </div>
+    </div>
+  </body>
+</html>

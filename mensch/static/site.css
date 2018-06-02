@@ -1,0 +1,22 @@
+.field {
+  position: absolute;
+  width: 9%;
+  height: 9%;
+}
+
+.allowed {
+  background-color: green;
+}
+
+.not-allowed {
+  background-color: red;
+}
+
+#field {
+  position: relative;
+  width: 400px;
+  height: 400px;
+}
+
+
+
