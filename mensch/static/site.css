@@ -2,21 +2,52 @@
   position: absolute;
   width: 9%;
   height: 9%;
+  background-color: lightgray;
 }
 
 .allowed {
-  background-color: green;
+  background-color: pink;
 }
 
-.not-allowed {
-  background-color: red;
+.s0, .s1, .s2, .s3 {
+  background-color: darkgray;
+}
+
+
+.h0, .b0 {
+  background-color: #ff6060;
+}
+
+.h1, .b1 {
+  background-color: #60afff;
+}
+
+.h2, .b2 {
+  background-color: #6eff60;
+}
+
+.h3, .b3 {
+  background-color: #ffd760;
+}
+
+.p0 {
+  color: red;
+}
+
+.p1 {
+  color: blue;
+}
+
+.p2 {
+  color: green;
+}
+
+.p3 {
+  color: yellow;
 }
 
 #field {
-  position: relative;
+  position: absolute;
   width: 400px;
   height: 400px;
 }
-
-
-

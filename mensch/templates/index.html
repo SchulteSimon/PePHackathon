@@ -6,6 +6,7 @@
     <title>Index</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='site.css') }}" />
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" >
     <script defer src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script defer src="{{ url_for('static', filename='main.js')}}"></script>
   </head>
@@ -18,13 +19,13 @@
 
       <div id="field">
         <button
-          v-for="(field, id) in fields" 
+          v-for="(field, id) in fields"
           class="field"
-          v-bind:disabled="!field.allowed"
           v-bind:style="{top: field.y + '%', left: field.x + '%'}"
-          v-bind:class="{allowed: field.allowed, 'not-allowed': !field.allowed}"
+          v-bind:class="[{allowed: field.allowed}, field.role]"
           v-on:click="handleClick(id)"
           >
+          <i v-bind:class="'p' + field.piece" v-if="field.piece !== null" class="fas fa-2x fa-chess-pawn"></i>
         </button>
       </div>
     </div>
