@@ -117,17 +117,11 @@ let app = new Vue({
   data: {
     fields: fields,
     numPlayer: 4,
-    currentPlayer: 1,
+    currentPlayer: 0,
     currentThrow: null,
     pieces: startPositions,
   },
   methods: {
-    throwDice: function() {
-      this.currentThrow = 1 + Math.floor(Math.random() * 6);
-    },
-    handleClick: function(fieldID) {
-      this.fields[fieldID+this.currentThrow].allowed = !this.fields[fieldID+this.currentThrow].allowed;
-    },
     hasWon: function(player) {
       for (position of this.pieces[player]) {
         if (this.fields[position].role !== ('h' + player) ) {
@@ -163,6 +157,29 @@ let app = new Vue({
       }
       return true;
     },
+    calculateTarget: function(player, piece, eyes) {
+      let position = this.pieces[player][piece];
+      let target = (position + eyes) % 40;
+      return target;
+    },
+
+    movePieceToField: function(player, piece, target) {
+      console.log('getCanThrowAusgabe: ', this.getCanThrow(this.currentPlayer, this.currentThrow));
+      if (this.getCanThrow(this.currentPlayer, this.currentThrow)[1] == true){
+        let [canThrow, bool, targetThrow] = this.getCanThrow(this.currentPlayer, this.currentThrow);
+        console.log('bool ', bool);
+        for(i=0; i<canThrow.length; i++) {
+          if(canThrow[i]==piece) {
+            this.fields[this.pieces[targetThrow[i][0]][targetThrow[i][1]]].piece = null;
+            this.fields[this.startPositions[targetThrow[i][0]][targetThrow[i][1]]].piece = targetThrow[i][0];
+            this.pieces[targetThrow[i][0]][targetThrow[i][1]] = this.startPositions[targetThrow[i][0]][targetThrow[i][1]];
+          }
+        }
+      }
+      this.fields[this.pieces[player][piece]].piece = null;
+      this.fields[target].piece = player;
+      this.pieces[player][piece] = target;
+    },
     movePiece: function(player, piece, eyes) {
       let currentPos = this.pieces[player][piece];
       let currentField = this.fields[currentPos];
@@ -173,30 +190,132 @@ let app = new Vue({
         if (eyes == 6) {
           target = entryPositions[player];
         }
+        else {target = this.pieces[player][piece];}
       } else {
         target = (this.pieces[player][piece] + eyes) % 40;
         if (currentPos < entryPositions[player] && target >= entryPositions[player]) {
           let eyes = target - entryPositions[player] + 1;
           target = housePositions[player][4 - eyes];
+          if (eyes > 4) {
+            target = this.pieces[player][piece];
+          }
+          else {
+            for (checkField = housePositions[player][3]; checkField < target; checkField++) {
+              if (this.fields[checkField].piece == player) {
+                target = this.pieces[player][piece];
+              }
+            }
+          }
         }
       }
       this.movePieceToField(player, piece, target);
     },
-    isMoveAllowed: function(player, piece, eyes) {
-      let currentPos = this.pieces[player][piece];
-      let role = this.fields[currentPos].role;
-      if (role.startsWith('b')) {
-        if (eyes === 6) {
-          return this.fields[entryPositions[player]].piece != player
-        } else {
-          return false;
+    getCanThrow: function(player, eyes) {
+      let canThrow = [];
+      let targetThrow = [];
+      let boolean;
+      for (piece = 0; piece < this.pieces[player].length; piece++) {
+        let position = this.pieces[player][piece];
+        let target = (position + eyes) % 40;
+        if (position < entryPositions[player] && target >= entryPositions[player]) {
+          continue;
+        }
+        let otherPiece = this.fields[target].piece;
+        console.log('anderer Spieler ', otherPiece);
+        if ((otherPiece != null)  && (otherPiece != player)) {
+          for (targetPiece = 0; targetPiece < this.pieces[otherPiece].length; targetPiece++) {
+            if (this.pieces[otherPiece][targetPiece] == target) {
+              this.fields[target].allowed = true;
+              boolean = true;
+              canThrow.push([piece]);
+              targetThrow.push([otherPiece, targetPiece]);
+            }
+          }
         }
       }
+      console.log('canThrow: ', canThrow, ' targetThrow: ', targetThrow);
+      return [canThrow, boolean, targetThrow];
     },
-    movePieceToField: function(player, piece, target) {
-      this.fields[this.pieces[player][piece]].piece = null;
-      this.fields[target].piece = player;
-      this.pieces[player][piece] = target;
+    getAllowedMoves: function(player, eyes) {
+      for (piece = 0; piece < this.pieces[player].length; piece++) {
+        let position = this.pieces[player][piece];
+        if (position == entryPositions[player]) {
+          if (this.fields[position + eyes].piece != player) {
+            this.fields[position + eyes].allowed = true;
+            return [piece], 'emptyStart';
+          }
+        }
+      }
+      let canThrow = this.getCanThrow(player, eyes);
+      if (canThrow[1] == true) return canThrow, 'throw';
+      for (piece = 0; piece < this.pieces[player].length; piece++) {
+        let position = this.pieces[player][piece];
+        let role = this.fields[position].role;
+        if (role.startsWith('b')) {
+          if (eyes === 6) {
+            if (this.fields[entryPositions[player]].piece != player) {
+              this.fields[entryPositions[player]].allowed = true;
+              return [piece], 'start';
+            }
+          }
+        }
+      }
+      availablePieces = [];
+      for (piece = 0; piece < this.pieces[player].length; piece++) {
+        let position = this.pieces[player][piece];
+        if (this.fields[position].role.startsWith('b')) {
+          continue;
+        }
+        target = (this.pieces[player][piece] + eyes) % 40;
+        if (this.fields[target].piece != this.currentPlayer) {
+          availablePieces.push(piece);
+          this.fields[target].allowed = true;
+        }
+      }
+      return availablePieces, 'normal';
+    },
+    dice: function() {
+      if (this.hasThreeThrows(this.currentPlayer) == true) {
+        this.throwDice();
+        if (this.currentThrow==6) {
+          this.fields[entryPositions[this.currentPlayer]].allowed = true;
+          }
+        else {
+          this.throwDice();
+        }
+        if (this.currentThrow==6) {
+          this.fields[entryPositions[this.currentPlayer]].allowed = true;
+          }
+        else {
+          this.throwDice();
+        }
+        if (this.currentThrow==6) {
+          this.fields[entryPositions[this.currentPlayer]].allowed = true;
+          }
+        else {
+          this.currentPlayer = (this.currentPlayer+1)%this.numPlayer;
+        }
+      }
+      else {
+        this.throwDice();
+      }
+      this.getAllowedMoves(this.currentPlayer, this.currentThrow);
+    },
+    throwDice: function() {
+      this.currentThrow = 1 + Math.floor(Math.random() * 6);
+    },
+    handleClick: function(fieldID) {
+      if (this.fields[fieldID].piece == this.currentPlayer) {
+        for (piece = 0; piece < this.pieces[this.currentPlayer].length; piece++) {
+          if (this.pieces[this.currentPlayer][piece] == fieldID) {
+            this.movePiece(this.currentPlayer, piece, this.currentThrow)
+            fields.forEach((field) => {
+              field['allowed'] = false;
+            });
+            this.currentPlayer = (this.currentPlayer+1)%this.numPlayer;
+          }
+        }
+      }
     }
-  }
+    }
 })

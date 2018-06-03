@@ -12,9 +12,9 @@
   </head>
   <body>
     <div id="app">
-      Anzahl Spieler: (( numPlayer )), Spieler (( currentPlayer )) ist an der Reihe.
+      Anzahl Spieler: (( numPlayer )), Spieler (( currentPlayer + 1 )) ist an der Reihe.
 
-      <button v-on:click="throwDice" >Würfeln</button>
+      <button v-on:click="dice" >Würfeln</button>
       Letzter Wurf: (( currentThrow ))
 
       <div id="field">

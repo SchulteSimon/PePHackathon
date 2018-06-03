@@ -5,10 +5,6 @@
   background-color: lightgray;
 }
 
-.allowed {
-  background-color: pink;
-}
-
 .s0, .s1, .s2, .s3 {
   background-color: darkgray;
 }
@@ -44,6 +40,9 @@
 
 .p3 {
   color: yellow;
+}
+.allowed {
+  background-color: pink !important;
 }
 
 #field {
